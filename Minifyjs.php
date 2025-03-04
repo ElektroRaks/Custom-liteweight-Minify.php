@@ -6,7 +6,7 @@ class Minifyjs extends CI_Model
      * Minify JS content
      * @return string
      * Custom Lite weight Minify.php  
-     * 
+     * https://github.com/ElektroRaks/Custom-liteweight-Minify.php
      */
 
     public function minifyJsContent($jsContent)
