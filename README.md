@@ -25,16 +25,23 @@ Add the following code inside the footer view (footer.php) of your CodeIgniter p
     $fileName = 'manage-user.min.js'; // New file name  
     if (ENVIRONMENT !== "production") {
         // Minify and include JavaScript files
-        $jsFilePaths = [
-            base_url() . '/public/assets/js/development/manage-user-dev.js',
-        ];
-        $minifiedJsContent = '';
-        foreach ($jsFilePaths as $filePath) {
-            $jsContent = file_get_contents($filePath);
-            $minifiedJsContent .= $this->minifyjs->minifyJsContent($jsContent);
+        $jsFilePaths =  base_url() . '/public/assets/js/development/manage-user-dev.js';
+        if (!file_exists($jsFilePath)) {
+            return false; // JS file does not exist
         }
-        echo '<script>' . $minifiedJsContent . '</script>';
+
+        $jsContent = file_get_contents($jsFilePath);
+        if ($jsContent === false) {
+            return false; // Error reading JS file
+        }
+
+        $minifiedJsContent = $this->minifyjs->minifyJsContent($jsContent);
+        if (!$minifiedJsContent) {
+            return false; // Minification failed
+        }
+        
         $this->minifyjs->saveMinifiedJs($minifiedJsContent, $fileName);
+        echo '<script src="'.$jsFilePaths.'"></script>';
     } else {
         echo '<script src="' . base_url() . 'public/assets/js/production/' . $fileName . '"></script>';
     }
