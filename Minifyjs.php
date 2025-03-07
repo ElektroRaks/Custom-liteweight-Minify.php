@@ -4,10 +4,13 @@ class Minifyjs extends CI_Model
 {
     /**
      * Minify JS content
-     * @return string
-     * Custom Lite weight Minify.php  
+     * Custom-liteweight-Minify.php
      * https://github.com/ElektroRaks/Custom-liteweight-Minify.php
+     * @param string $jsContent
+     * @return string $minifiedJsContent
+     * 
      */
+    
 
     public function minifyJsContent($jsContent)
     {
@@ -25,14 +28,20 @@ class Minifyjs extends CI_Model
         return $jsContent;
     }
 
+    /**
+     * Save minified JS content
+     * @param string $jsContent
+     * @param string $fileName
+     * @return bool
+     */
     public function saveMinifiedJs($jsContent, $fileName)
     {
         // Use FCPATH to get the local file path
-        $filePath = FCPATH . 'public/assets/js/production/' . $fileName;
+        $filePath = FCPATH . 'public/assets/module/production/' . $fileName;
         
         // Ensure the directory exists
-        if (!is_dir(FCPATH . 'public/assets/js/production')) {
-            mkdir(FCPATH . 'public/assets/js/production', 0755, true);
+        if (!is_dir(FCPATH . 'public/assets/module/production')) {
+            mkdir(FCPATH . 'public/assets/module/production', 0755, true);
         }
         
         // Open the file in write mode and save the content, overwriting if the file exists
@@ -47,10 +56,40 @@ class Minifyjs extends CI_Model
     }
 
 
-    public function minifyAndSaveJs($jsContent, $fileName)
+    /**
+     * Load and minify JS file
+     * @param string $js_filename
+     * @param string $new_filename
+     * @return string
+     */
+    function loadRequestJS($js_filename, $new_filename)
     {
-        $minifiedJsContent = $this->minifyJsContent($jsContent);
-        $this->saveMinifiedJs($minifiedJsContent, $fileName);
+        if (empty($js_filename) || empty($new_filename)) {
+            return '<script>console.log("Please provide a valid JS file name");</script>';
+        }
+
+        if (ENVIRONMENT !== "production") {
+            $jsFilePath = FCPATH . 'public/assets/module/development/' . $js_filename;
+            if (!file_exists($jsFilePath)) {
+                return '<script>console.log("JS file not found: ' . $js_filename . '");</script>';
+            }
+
+            $jsContent = file_get_contents($jsFilePath);
+            if ($jsContent === false) {
+                return '<script>console.log("Error reading JS file: ' . $js_filename . '");</script>';
+            }
+
+            $minifiedJsContent = $this->minifyjs->minifyJsContent($jsContent);
+            if (!$minifiedJsContent) {
+                return '<script>console.log("Minification failed");</script>';
+            }
+
+            $this->minifyjs->saveMinifiedJs($minifiedJsContent, $new_filename);
+
+            return '<script src="' . DEVELOPMENT_JS_URL . $js_filename . '"></script>';
+        } 
+        return '<script src="' . PRODUCTION_JS_URL . $new_filename . '"></script>';
     }
+
 
 }
